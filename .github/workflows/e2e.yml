@@ -50,10 +50,11 @@ jobs:
         shell: bash
         working-directory: src
         run: |
-          python packaging/e2e_check.py > "$RUNNER_TEMP/e2e.txt" 2>&1; status=$?
+          status=0
+          python packaging/e2e_check.py > "$RUNNER_TEMP/e2e.txt" 2>&1 || status=$?
           cat "$RUNNER_TEMP/e2e.txt"
           if [ $status -ne 0 ]; then
-            msg=$(grep -E "FAILED|NOT|NO;|MISSING|Error|error" "$RUNNER_TEMP/e2e.txt" | head -15 | sed ':a;N;$!ba;s/\n/%0A/g')
+            msg=$(tail -25 "$RUNNER_TEMP/e2e.txt" | sed ':a;N;$!ba;s/\n/%0A/g')
             echo "::error title=End-to-end check failed on ${{ matrix.os }}::$msg"
           fi
           exit $status
