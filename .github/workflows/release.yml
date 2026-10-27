@@ -1,0 +1,206 @@
+# Build the customer app from the eq-helper source for Windows, macOS and
+# Linux, self-test every build, and publish a release here with SHA256SUMS.
+#
+# Start it from Actions → "Build and publish" → Run workflow, or let a
+# rf-vX.Y.Z tag in eq-helper request it (repository_dispatch).
+#
+# The release names are a contract with EQ Helper's "Generate customer app…"
+# (eq_helper/admin/build_cache.py): <Product>-<version>-windows.zip,
+# -macos.dmg, -linux.AppImage and SHA256SUMS. It downloads /releases/latest,
+# so prereleases are skipped by it.
+name: Build and publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, e.g. 1.0.0 (the release tag becomes rf-v1.0.0)"
+        required: true
+      source_ref:
+        description: "eq-helper branch, tag or commit to build"
+        required: true
+        default: feat/resonancefit
+      publish:
+        description: "Publish the release (off = build and test only)"
+        type: boolean
+        default: true
+  repository_dispatch:
+    types: [build-release]
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_REPO: MohamedKhalil8801/eq-helper
+  VERSION: ${{ inputs.version || github.event.client_payload.version }}
+  SOURCE_REF: ${{ inputs.source_ref || github.event.client_payload.source_ref || 'main' }}
+  PUBLISH: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
+  PYTHON_VERSION: "3.12"
+
+concurrency:
+  group: release-${{ inputs.version || github.event.client_payload.version }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test source
+    runs-on: ubuntu-22.04
+    outputs:
+      sha: ${{ steps.src.outputs.sha }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+      EQ_HELPER_NO_AUDIO: "1"
+    steps:
+      - name: Check the version
+        run: |
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::Version must look like 1.2.3"; exit 1; }
+          if gh release view "rf-v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 && [ "$PUBLISH" = "true" ]; then
+            echo "::error::Release rf-v$VERSION already exists"; exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN || github.token }}
+          path: src
+      - id: src
+        run: echo "sha=$(git -C src rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: src/pyproject.toml
+      - name: System libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libportaudio2 libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
+            libfontconfig1 libdbus-1-3 libxcb-cursor0 libsndfile1
+      - run: pip install -e "./src[dev]" pypdf
+      - name: Tests
+        working-directory: src
+        run: python -m pytest -q
+
+  build:
+    name: Build ${{ matrix.system }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, system: windows }
+          - { os: macos-14, system: macos }
+          - { os: ubuntu-22.04, system: linux }   # oldest supported glibc for the AppImage
+    env:
+      QT_QPA_PLATFORM: offscreen
+      RF_REQUIRE_AUDIO: "1"
+    defaults:
+      run:
+        shell: bash
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          ref: ${{ needs.test.outputs.sha }}
+          token: ${{ secrets.SOURCE_REPO_TOKEN || github.token }}
+          path: src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: src/pyproject.toml
+      - name: System libraries
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libportaudio2 libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
+            libfontconfig1 libdbus-1-3 libxcb-cursor0 file
+          curl -fsSL -o appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          echo "APPIMAGETOOL=$PWD/appimagetool" >> "$GITHUB_ENV"
+      - name: Install
+        run: pip install . "pyinstaller>=6.10,<7"
+      - name: Stamp version
+        run: python packaging/package_release.py version "$VERSION"
+      - name: Build
+        run: pyinstaller --noconfirm --clean resonancefit.spec
+      - name: Self-test the build
+        run: |
+          export RF_SELFTEST_REPORT="$RUNNER_TEMP/selftest-build.txt"
+          status=0
+          case "${{ matrix.system }}" in
+            windows) pwsh -NoProfile -Command '$p = Start-Process -FilePath "dist\ResonanceFit\ResonanceFit.exe" -ArgumentList "--self-test" -Wait -PassThru; exit $p.ExitCode' || status=$? ;;
+            macos)   dist/ResonanceFit.app/Contents/MacOS/ResonanceFit --self-test || status=$? ;;
+            linux)   dist/ResonanceFit/ResonanceFit --self-test || status=$? ;;
+          esac
+          cat "$RF_SELFTEST_REPORT" || true
+          exit $status
+      - name: Package
+        run: |
+          python packaging/package_release.py package --system "${{ matrix.system }}" --version "$VERSION" \
+            --appimagetool "${APPIMAGETOOL:-appimagetool}"
+          ls -la release
+      - name: Self-test the package
+        if: runner.os != 'Windows'
+        run: |
+          export RF_SELFTEST_REPORT="$RUNNER_TEMP/selftest-package.txt"
+          if [ "${{ matrix.system }}" = macos ]; then
+            mnt=$(mktemp -d)
+            hdiutil attach "release/ResonanceFit-$VERSION-macos.dmg" -mountpoint "$mnt" -nobrowse -readonly
+            status=0
+            "$mnt/ResonanceFit.app/Contents/MacOS/ResonanceFit" --self-test || status=$?
+            hdiutil detach "$mnt"
+          else
+            status=0
+            "release/ResonanceFit-$VERSION-linux.AppImage" --appimage-extract-and-run --self-test || status=$?
+          fi
+          cat "$RF_SELFTEST_REPORT" || true
+          exit $status
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.system }}
+          path: src/release/ResonanceFit-*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish rf-v${{ inputs.version || github.event.client_payload.version }}
+    needs: [test, build]
+    if: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release
+          merge-multiple: true
+      - name: Checksums
+        working-directory: release
+        run: |
+          sha256sum ResonanceFit-* > SHA256SUMS
+          cat SHA256SUMS
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.test.outputs.sha }}
+        run: |
+          cat > notes.md <<NOTES
+          ResonanceFit $VERSION, built from [\`${SHA:0:7}\`](https://github.com/$SOURCE_REPO/commit/$SHA) ($SOURCE_REF).
+
+          | System | File |
+          |---|---|
+          | Windows 10/11 (64-bit) | \`ResonanceFit-$VERSION-windows.zip\` |
+          | macOS 11+ (Apple silicon) | \`ResonanceFit-$VERSION-macos.dmg\` |
+          | Linux x86-64 (glibc 2.35+) | \`ResonanceFit-$VERSION-linux.AppImage\` |
+
+          Customers get these inside their personal download from their tuner (with their calibration file);
+          on its own the app asks for a calibration file. The apps are not code-signed yet; see the README for
+          first-launch steps. Verify downloads with \`SHA256SUMS\`.
+          NOTES
+          gh release create "rf-v$VERSION" release/* --repo "$GITHUB_REPOSITORY" \
+            --title "ResonanceFit $VERSION" --notes-file notes.md --latest
