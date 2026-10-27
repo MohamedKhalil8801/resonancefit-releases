@@ -209,7 +209,20 @@ jobs:
           first-launch steps. Verify downloads with \`SHA256SUMS\`.
           NOTES
           gh release create "rf-v$VERSION" release/* --repo "$GITHUB_REPOSITORY" \
-            --title "ResonanceFit $VERSION" --notes-file notes.md --latest
+            --title "ResonanceFit $VERSION" --notes-file notes.md --latest \
+            || echo "::warning::gh release create reported an error; checking what was published"
+          # Trust the release, not the exit code: re-upload anything missing, then verify.
+          for attempt in 1 2 3; do
+            missing=$(cd release && for f in *; do
+              gh release view "rf-v$VERSION" --repo "$GITHUB_REPOSITORY" --json assets \
+                --jq ".assets[] | select(.name==\"$f\" and .state==\"uploaded\") | .name" | grep -qx "$f" || echo "$f"
+            done)
+            [ -z "$missing" ] && break
+            echo "Re-uploading: $missing"
+            (cd release && gh release upload "rf-v$VERSION" $missing --clobber --repo "$GITHUB_REPOSITORY") || sleep 10
+          done
+          if [ -n "$missing" ]; then echo "::error::Release incomplete, missing: $missing"; exit 1; fi
+          echo "Release rf-v$VERSION is complete."
 
   e2e:
     name: End-to-end check
