@@ -154,7 +154,8 @@ jobs:
             hdiutil attach "release/ResonanceFit-$VERSION-macos.dmg" -mountpoint "$mnt" -nobrowse -readonly
             status=0
             "$mnt/ResonanceFit.app/Contents/MacOS/ResonanceFit" --self-test || status=$?
-            hdiutil detach "$mnt"
+            # the app may still be releasing the volume for a moment after it quits
+            for i in 1 2 3 4 5; do hdiutil detach "$mnt" && break; sleep 3; done || hdiutil detach -force "$mnt" || true
           else
             status=0
             "release/ResonanceFit-$VERSION-linux.AppImage" --appimage-extract-and-run --self-test || status=$?
