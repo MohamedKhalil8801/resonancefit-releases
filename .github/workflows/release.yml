@@ -169,7 +169,7 @@ jobs:
           retention-days: 14
 
   publish:
-    name: Publish rf-v${{ inputs.version || github.event.client_payload.version }}
+    name: Publish release
     needs: [test, build]
     if: ${{ github.event_name == 'repository_dispatch' || inputs.publish }}
     runs-on: ubuntu-latest
