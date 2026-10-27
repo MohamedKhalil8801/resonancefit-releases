@@ -210,3 +210,11 @@ jobs:
           NOTES
           gh release create "rf-v$VERSION" release/* --repo "$GITHUB_REPOSITORY" \
             --title "ResonanceFit $VERSION" --notes-file notes.md --latest
+
+  e2e:
+    name: End-to-end check
+    needs: [test, publish]
+    uses: ./.github/workflows/e2e.yml
+    with:
+      source_ref: ${{ needs.test.outputs.sha }}
+    secrets: inherit
