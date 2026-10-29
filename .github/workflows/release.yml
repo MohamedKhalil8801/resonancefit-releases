@@ -67,6 +67,17 @@ jobs:
           path: src
       - id: src
         run: echo "sha=$(git -C src rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: What's new (this version's section of the changelog)
+        run: |
+          log=src/docs/resonancefit-changelog.md
+          [ -f "$log" ] && awk -v v="## $VERSION" '$0 == v {on=1; next} on && /^## / {exit} on' "$log" > changes.md
+          [ -s changes.md ] || { echo "::warning::No '## $VERSION' section in $log"; : > changes.md; }
+          cat changes.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: changes
+          path: changes.md
+          retention-days: 14
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -185,6 +196,9 @@ jobs:
           pattern: release-*
           path: release
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: changes
       - name: Checksums
         working-directory: release
         run: |
@@ -198,6 +212,11 @@ jobs:
           cat > notes.md <<NOTES
           ResonanceFit $VERSION, built from [\`${SHA:0:7}\`](https://github.com/$SOURCE_REPO/commit/$SHA) ($SOURCE_REF).
 
+          NOTES
+          if [ -s changes.md ]; then
+            { echo "## What's new"; cat changes.md; echo; echo "## Downloads"; echo; } >> notes.md
+          fi
+          cat >> notes.md <<NOTES
           | System | File |
           |---|---|
           | Windows 10/11 (64-bit) | \`ResonanceFit-$VERSION-windows.zip\` |
