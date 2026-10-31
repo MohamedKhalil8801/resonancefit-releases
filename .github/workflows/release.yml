@@ -129,7 +129,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libportaudio2 libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
-            libfontconfig1 libdbus-1-3 libxcb-cursor0 file
+            libfontconfig1 libdbus-1-3 libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0 file
           curl -fsSL -o appimagetool \
             https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
@@ -178,6 +178,43 @@ jobs:
           fi
           cat "$RF_SELFTEST_REPORT" || true
           exit $status
+      # The self-test above unpacks the AppImage instead of mounting it, so it can't
+      # catch a file that real systems won't open. Here it runs the way customers
+      # start it: mounted by its own runtime (FUSE), then with AppImageLauncher 2.2.0
+      # installed. Many Linux users have it, and it takes over every file marked as
+      # an AppImage but can't start ones built with today's runtime (rf-v0.3.0
+      # failed: "Can't open squashfs image"). Packaging blanks the marker so the
+      # system starts the file itself; this checks that, and that the file wasn't
+      # moved away from the Calibrations folder next to it.
+      - name: Open the AppImage as customers do (FUSE, AppImageLauncher)
+        if: matrix.system == 'linux'
+        env:
+          AIL_DEB: appimagelauncher_2.2.0-travis995.0f91801.bionic_amd64.deb
+          AIL_SHA256: f4b9db56a6ba7dd091074b14157612986a9f6a0cb3fcd230abfc8f4555c70a7f
+        run: |
+          image="$PWD/release/ResonanceFit-$VERSION-linux.AppImage"
+          sudo apt-get install -y fuse3
+          export RF_SELFTEST_REPORT="$RUNNER_TEMP/selftest-fuse.txt"
+          status=0
+          timeout 180 "$image" --self-test || status=$?
+          cat "$RF_SELFTEST_REPORT" || true
+          [ $status -eq 0 ] || { echo "::error::The AppImage didn't run when mounted (exit $status)"; exit $status; }
+
+          curl -fsSL -o "$RUNNER_TEMP/ail.deb" \
+            "https://github.com/TheAssassin/AppImageLauncher/releases/download/v2.2.0/$AIL_DEB"
+          echo "$AIL_SHA256  $RUNNER_TEMP/ail.deb" | sha256sum -c -
+          sudo apt-get install -y "$RUNNER_TEMP/ail.deb"
+          sudo systemctl restart systemd-binfmt || true
+          grep -l AppImageLauncher /proc/sys/fs/binfmt_misc/* \
+            || { echo "::error::AppImageLauncher didn't register for AppImages"; exit 1; }
+          export RF_SELFTEST_REPORT="$RUNNER_TEMP/selftest-appimagelauncher.txt"
+          status=0
+          timeout 180 "$image" --self-test || status=$?
+          cat "$RF_SELFTEST_REPORT" || true
+          [ $status -eq 0 ] || { echo "::error::AppImageLauncher couldn't open the AppImage (exit $status)"; exit $status; }
+          grep -q "SELF-TEST PASSED" "$RF_SELFTEST_REPORT" \
+            || { echo "::error::The app didn't run its self-test through AppImageLauncher"; exit 1; }
+          [ -f "$image" ] || { echo "::error::AppImageLauncher moved the AppImage away from its folder"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.system }}
