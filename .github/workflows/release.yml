@@ -205,8 +205,9 @@ jobs:
           echo "$AIL_SHA256  $RUNNER_TEMP/ail.deb" | sha256sum -c -
           sudo apt-get install -y "$RUNNER_TEMP/ail.deb"
           sudo systemctl restart systemd-binfmt || true
-          grep -l AppImageLauncher /proc/sys/fs/binfmt_misc/* \
+          grep -q AppImageLauncher /proc/sys/fs/binfmt_misc/appimage-type2 \
             || { echo "::error::AppImageLauncher didn't register for AppImages"; exit 1; }
+          cat /proc/sys/fs/binfmt_misc/appimage-type2
           export RF_SELFTEST_REPORT="$RUNNER_TEMP/selftest-appimagelauncher.txt"
           status=0
           timeout 180 "$image" --self-test || status=$?
