@@ -60,7 +60,7 @@
      "units": 1,
      "score": {
       "version": 1,
-      "total": 88,
+      "total": 83,
       "factors": [
        {
         "key": "extension",
@@ -79,7 +79,7 @@
        },
        {
         "key": "balance",
-        "score": 100.0,
+        "score": 71.50364967745851,
         "sides": {}
        },
        {
@@ -107,7 +107,7 @@
      "units": 1,
      "score": {
       "version": 1,
-      "total": 62,
+      "total": 69,
       "factors": [
        {
         "key": "extension",
@@ -126,7 +126,7 @@
        },
        {
         "key": "balance",
-        "score": 32.92915337629738,
+        "score": 58.12092403255087,
         "sides": {}
        },
        {
