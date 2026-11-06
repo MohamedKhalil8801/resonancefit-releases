@@ -1,0 +1,148 @@
+{
+ "format": 1,
+ "updated": "2026-11-06",
+ "score_version": 1,
+ "models": [
+  {
+   "brand": "Truthear",
+   "model": "Nova",
+   "connection": "wired",
+   "entries": [
+    {
+     "tips": "Spinfit W1",
+     "units": 1,
+     "score": {
+      "version": 1,
+      "total": 97,
+      "factors": [
+       {
+        "key": "extension",
+        "score": 98.64669143316004,
+        "sides": {}
+       },
+       {
+        "key": "smoothness",
+        "score": 100.0,
+        "sides": {}
+       },
+       {
+        "key": "resonance",
+        "score": 84.30102788485013,
+        "sides": {}
+       },
+       {
+        "key": "balance",
+        "score": 100.0,
+        "sides": {}
+       },
+       {
+        "key": "headroom",
+        "score": 87.26234603690942,
+        "sides": {}
+       },
+       {
+        "key": "easy",
+        "score": 100.0,
+        "sides": {}
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "brand": "AKG",
+   "model": "EO-IG955",
+   "connection": "wired",
+   "entries": [
+    {
+     "tips": "Spinfit W1",
+     "units": 1,
+     "score": {
+      "version": 1,
+      "total": 88,
+      "factors": [
+       {
+        "key": "extension",
+        "score": 94.4493467084497,
+        "sides": {}
+       },
+       {
+        "key": "smoothness",
+        "score": 99.70924854179026,
+        "sides": {}
+       },
+       {
+        "key": "resonance",
+        "score": 68.65750785566803,
+        "sides": {}
+       },
+       {
+        "key": "balance",
+        "score": 100.0,
+        "sides": {}
+       },
+       {
+        "key": "headroom",
+        "score": 46.59648633822038,
+        "sides": {}
+       },
+       {
+        "key": "easy",
+        "score": 94.92744891704227,
+        "sides": {}
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "brand": "Soundcore",
+   "model": "R50i",
+   "connection": "bluetooth",
+   "entries": [
+    {
+     "tips": "Stock silicone",
+     "units": 1,
+     "score": {
+      "version": 1,
+      "total": 62,
+      "factors": [
+       {
+        "key": "extension",
+        "score": 96.9276623403187,
+        "sides": {}
+       },
+       {
+        "key": "smoothness",
+        "score": 93.67188235457955,
+        "sides": {}
+       },
+       {
+        "key": "resonance",
+        "score": 45.966927210489914,
+        "sides": {}
+       },
+       {
+        "key": "balance",
+        "score": 32.92915337629738,
+        "sides": {}
+       },
+       {
+        "key": "headroom",
+        "score": 34.33490514231134,
+        "sides": {}
+       },
+       {
+        "key": "easy",
+        "score": 62.430333284274184,
+        "sides": {}
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}
