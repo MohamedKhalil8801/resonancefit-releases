@@ -1,7 +1,7 @@
 {
  "format": 1,
  "updated": "2026-11-06",
- "score_version": 2,
+ "score_version": 3,
  "models": [
   {
    "brand": "Truthear",
@@ -12,12 +12,12 @@
      "tips": "Spinfit W1",
      "units": 1,
      "score": {
-      "version": 2,
+      "version": 3,
       "total": 97,
       "factors": [
        {
         "key": "extension",
-        "score": 98.64669143316004,
+        "score": 98.07068958140758,
         "sides": {}
        },
        {
@@ -59,12 +59,12 @@
      "tips": "Spinfit W1",
      "units": 1,
      "score": {
-      "version": 2,
-      "total": 83,
+      "version": 3,
+      "total": 81,
       "factors": [
        {
         "key": "extension",
-        "score": 94.4493467084497,
+        "score": 83.666585115223,
         "sides": {}
        },
        {
@@ -106,12 +106,12 @@
      "tips": "Stock silicone",
      "units": 1,
      "score": {
-      "version": 2,
-      "total": 69,
+      "version": 3,
+      "total": 65,
       "factors": [
        {
         "key": "extension",
-        "score": 96.9276623403187,
+        "score": 71.67636289277064,
         "sides": {}
        },
        {
