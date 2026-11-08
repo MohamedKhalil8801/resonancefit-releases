@@ -1,7 +1,7 @@
 {
  "format": 1,
- "updated": "2026-11-07",
- "score_version": 5,
+ "updated": "2026-11-08",
+ "score_version": 6,
  "models": [
   {
    "brand": "Truthear",
@@ -9,11 +9,51 @@
    "connection": "wired",
    "entries": [
     {
-     "tips": "Spinfit W1",
+     "tips": "Old Foam",
      "units": 1,
      "score": {
-      "version": 5,
-      "total": 95,
+      "version": 6,
+      "total": 97,
+      "factors": [
+       {
+        "key": "extension",
+        "score": 99.93137241187942,
+        "sides": {}
+       },
+       {
+        "key": "smoothness",
+        "score": 100.0,
+        "sides": {}
+       },
+       {
+        "key": "resonance",
+        "score": 96.2151491606721,
+        "sides": {}
+       },
+       {
+        "key": "balance",
+        "score": 100.0,
+        "sides": {}
+       },
+       {
+        "key": "headroom",
+        "score": 85.77808822288654,
+        "sides": {}
+       },
+       {
+        "key": "easy",
+        "score": 98.85876427185336,
+        "sides": {}
+       }
+      ]
+     }
+    },
+    {
+     "tips": "SpinFit W1 (M)",
+     "units": 1,
+     "score": {
+      "version": 6,
+      "total": 91,
       "factors": [
        {
         "key": "extension",
@@ -27,7 +67,7 @@
        },
        {
         "key": "resonance",
-        "score": 84.30102788485013,
+        "score": 70.22379633607034,
         "sides": {}
        },
        {
@@ -37,7 +77,7 @@
        },
        {
         "key": "headroom",
-        "score": 87.26234603690942,
+        "score": 87.26234606234428,
         "sides": {}
        },
        {
@@ -56,40 +96,40 @@
    "connection": "wired",
    "entries": [
     {
-     "tips": "Spinfit W1",
+     "tips": "SpinFit W1 (M)",
      "units": 1,
      "score": {
-      "version": 5,
-      "total": 80,
+      "version": 6,
+      "total": 83,
       "factors": [
        {
         "key": "extension",
-        "score": 97.34279783283668,
+        "score": 97.34279775905134,
         "sides": {}
        },
        {
         "key": "smoothness",
-        "score": 99.70924854179026,
+        "score": 99.70924908830297,
         "sides": {}
        },
        {
         "key": "resonance",
-        "score": 68.65750785566803,
+        "score": 78.65649750596937,
         "sides": {}
        },
        {
         "key": "balance",
-        "score": 71.50364967745851,
+        "score": 71.50365385434482,
         "sides": {}
        },
        {
         "key": "headroom",
-        "score": 46.59648633822038,
+        "score": 46.596487114414955,
         "sides": {}
        },
        {
         "key": "easy",
-        "score": 94.92744891704227,
+        "score": 94.92744889571303,
         "sides": {}
        }
       ]
@@ -98,45 +138,45 @@
    ]
   },
   {
-   "brand": "Soundcore",
-   "model": "R50i",
-   "connection": "bluetooth",
+   "brand": "Anker",
+   "model": "Soundcore R50i",
+   "connection": "wired",
    "entries": [
     {
-     "tips": "Stock silicone",
+     "tips": "Stock",
      "units": 1,
      "score": {
-      "version": 5,
-      "total": 64,
+      "version": 6,
+      "total": 61,
       "factors": [
        {
         "key": "extension",
-        "score": 86.04127945396738,
+        "score": 86.04127944126012,
         "sides": {}
        },
        {
         "key": "smoothness",
-        "score": 93.67188235457955,
+        "score": 93.67188256827892,
         "sides": {}
        },
        {
         "key": "resonance",
-        "score": 45.966927210489914,
+        "score": 37.95421331537199,
         "sides": {}
        },
        {
         "key": "balance",
-        "score": 58.12092403255087,
+        "score": 58.12092451053792,
         "sides": {}
        },
        {
         "key": "headroom",
-        "score": 34.33490514231134,
+        "score": 34.33490542770299,
         "sides": {}
        },
        {
         "key": "easy",
-        "score": 62.430333284274184,
+        "score": 62.430331863676805,
         "sides": {}
        }
       ]
