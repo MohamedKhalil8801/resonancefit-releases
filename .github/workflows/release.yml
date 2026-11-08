@@ -102,7 +102,7 @@ jobs:
       matrix:
         include:
           - { os: windows-latest, system: windows }
-          - { os: macos-14, system: macos }
+          - { os: macos-15, system: macos }
           - { os: ubuntu-22.04, system: linux }   # oldest supported glibc for the AppImage
     env:
       QT_QPA_PLATFORM: offscreen
